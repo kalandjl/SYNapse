@@ -1,6 +1,5 @@
 from scapy.all import * 
 
-result = sniff(count = 10)
+results = sniff(count = 10)
 
-result.show()
-
+print(results[3].show())

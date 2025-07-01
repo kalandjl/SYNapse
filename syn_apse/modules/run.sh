@@ -1,1 +1,1 @@
-sudo python sniffer.py
+watchfiles "sudo python sniffer.py" .
