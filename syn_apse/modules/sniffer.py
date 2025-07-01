@@ -1,5 +1,6 @@
 from scapy.all import * 
 
-results = sniff(count = 10)
+def packet_callback(packet):
+    packet.show()
 
-print(results[3].show())
+results = sniff(filter="icmp", prn=packet_callback)
