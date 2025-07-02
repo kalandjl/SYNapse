@@ -1,0 +1,1 @@
+sudo syn-apse sniff --interface en0
