@@ -26,3 +26,6 @@ env/
 # OS-specific files
 .DS_Store
 Thumbs.db
+
+# PIP
+py_synapse_toolkit.egg-info
