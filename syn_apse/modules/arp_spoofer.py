@@ -2,7 +2,7 @@ import scapy.all as scapy
 from scapy.all import conf
 from ..utils import get_mac
 
-def send_spoof_packet(target_ip, spoof_ip):
+def send_spoof_packet(target_ip, spoof_ip, target_mac):
     """
     This function takes two arguments; the ip of the arp poisoning target, and the ip of the device being spoofed.
     First, collect the target_ip's mac adress with the get_mac util function.
@@ -10,14 +10,6 @@ def send_spoof_packet(target_ip, spoof_ip):
     impersonated mac address which the router thinks is the phone. 
     Finally, send the packet to the network with scapy.send()
     """
-
-    target_mac = get_mac(target_ip)
-
-    # If MAC address cannot be found, return
-    if not target_mac:
-        print(f"[-] Could not resolve MAC address for {target_ip}. Skipping a spoof packet.")
-        return
-
 
     # Poison the router ARP cache
     # op = 2; this is an answer, not a request
