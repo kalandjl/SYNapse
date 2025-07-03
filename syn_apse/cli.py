@@ -63,3 +63,7 @@ def main():
             print(f"[ERROR] Permission denied; try running with sudo")
         except KeyboardInterrupt:
             print ("\n[+] Ctrl+C detected. Shutting down...")
+            
+            
+if __name__ == "__main__":
+    main()
