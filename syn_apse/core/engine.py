@@ -1,8 +1,34 @@
 import threading
 import time
-from ..modules import arp_spoofer
-from ..modules import sniffer
-from ..utils.network import get_mac # Correctly import get_mac from your utils
+#from ..modules import arp_spoofer
+import scapy.all as scapy
+#from ..modules import sniffer
+
+def get_mac(ip_address):
+    """
+    This function takes in an IP address and crafts an ARP request packet asking for it's MAC address.
+    By wrapping the request in an ethernet broadcasting frame, this request will be seen by all devices on the network
+    It will parse the response and return the MAC address
+    """
+
+    arp_request = scapy.ARP(pdst=ip_address)
+
+    arp_request_broadcast = scapy.Ether(dst="ff:ff:ff:ff:ff:ff")
+
+    # Combine ARP request and ethernet frame into a single packet
+    arp_request_broadcast = arp_request_broadcast/arp_request
+    
+    answered_list = scapy.srp(arp_request_broadcast, timeout=1, verbose=False)[0]
+
+    # If answered_list contains pairs of (sent, recieved) packet
+    if answered_list:
+
+        # Find MAC adress of first recieved packet
+        return answered_list[0][1].hwsrc
+    else:
+        return None
+
+print(get_mac("10.0.0.83"))
 
 def _arp_spoof_loop(target_ip, gateway_ip, target_mac, gateway_mac):
     """
