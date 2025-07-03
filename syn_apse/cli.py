@@ -2,6 +2,7 @@
 
 import argparse
 from .modules import sniffer  # We import the whole modules package
+from .core import start_mitm_attack 
 
 def main():
     parser = argparse.ArgumentParser(
@@ -31,6 +32,11 @@ def main():
         help="Number of packets to capture (0 for unlimited)."
     )
 
+    parser_mitm = subparsers.add_parser('mitm', help='Run a full MitM attack (ARP spoof + Sniffer).')
+    parser_mitm.add_argument('-t', '--target', required=True, help="The IP address of the target device.")
+    parser_mitm.add_argument('-g', '--gateway', required=True, help="The IP address of the network gateway/router.")
+    parser_mitm.add_argument('-i', '--interface', required=True, help="The network interface to use.")
+
     # For ARP spoofing
     parser_spoof = subparsers.add_parser('spoof', help='Run an ARP spoofing attack.')
 
@@ -50,3 +56,10 @@ def main():
             
     elif args.command == 'spoof':
         print("Spoof module not yet implemented.")
+    elif args.command == "mitm":
+        try:
+            start_mitm_attack(args.target, args.gateway, args.interface)
+        except PermissionError:
+            print(f"[ERROR] Permission denied; try running with sudo")
+        except KeyboardInterrupt:
+            print ("\n[+] Ctrl+C detected. Shutting down...")

