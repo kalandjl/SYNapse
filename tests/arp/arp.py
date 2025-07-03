@@ -52,6 +52,4 @@ default_route = conf.route.route("0.0.0.0")
 gateway_ip = default_route[2]
 print(f"Router IP: {gateway_ip}")
 
-send_spoof_packet("10.0.0.83", gateway_ip)
-
-send_spoof_packet(gateway_ip, "10.0.0.83")
+print(get_mac("10.0.0.1"))

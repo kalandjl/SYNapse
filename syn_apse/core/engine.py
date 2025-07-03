@@ -31,6 +31,9 @@ def start_mitm_attack(target_ip, gateway_ip, interface):
         target_mac = get_mac(target_ip)
         gateway_mac = get_mac(gateway_ip)
 
+        print(f"Target; MAC:{target_mac} IP: {target_ip}")
+        print(f"Router; MAC:{gateway_mac} IP: {gateway_ip}")
+
         if not target_mac or not gateway_mac:
             print("[ERROR] Could not resolve one or more MAC addresses. Aborting.")
             return
