@@ -29,3 +29,5 @@ Thumbs.db
 
 # PIP
 py_synapse_toolkit.egg-info
+
+*.swp

@@ -1,1 +1,1 @@
-sudo syn-apse mitm --target 10.0.0.83 --gateway 10.0.0.1 --interface en0
+sudo -E ./run.sh sniff --interface eth0
