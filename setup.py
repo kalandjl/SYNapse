@@ -6,9 +6,9 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
 
-    name='py-synapse-toolkit', 
+    name='synapse-toolkit', 
 
-    version='0.1.0',
+    version='1.0.0',
     
     author='Kalan Jarvis-Loewen',
     
@@ -23,8 +23,9 @@ setup(
     
     install_requires=[
         'scapy',
+        'NetfilterQueue ; platform_system=="Linux"',
     ],
-    
+
     entry_points={
         'console_scripts': [
             'syn-apse = syn_apse.cli:main',

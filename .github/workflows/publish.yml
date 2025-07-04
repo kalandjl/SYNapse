@@ -1,0 +1,41 @@
+# .github/workflows/publish.yml
+
+name: Publish Python Package to PyPI
+
+on:
+  # This workflow runs every time you create a new release on GitHub
+  release:
+    types: [published]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    # This specifies the environment we configured in PyPI's trusted publisher settings
+    environment: pypi
+    
+    # These permissions are required by the OIDC token exchange
+    permissions:
+      id-token: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build
+    
+    - name: Build package
+      run: python -m build
+
+    - name: Publish package to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      # This action will automatically handle the OIDC authentication with PyPI
+      # No tokens or passwords are needed.
