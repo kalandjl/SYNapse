@@ -3,7 +3,7 @@ import scapy.all as scapy
 import argparse 
 import time
 
-def get_mac(ip_address, interface, retries=3, timeout=2):
+def get_mac(ip_address, interface, retries=10, timeout=2):
     """
     Gets the MAC address for a given IP, retrying multiple times if it fails.
     """

