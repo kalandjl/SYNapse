@@ -73,7 +73,7 @@ sudo iptables --flush
 
 ## Usage & Commands
 
-All commands require root priviledges. It is recommended to run them with ```sudo -E``` to preserve your environement.
+All commands require root privileges. It is recommended to run them with ```sudo -E``` to preserve your environement.
 
 ### ```mitm``` 
  
@@ -132,6 +132,17 @@ sudo -E syn-apse sniff --interface eth0 --filter "udp port 53" --count 10
 
 ## Disclaimer
 SYNapse is a tool created for educational and research purposes only. It is intended to be used in controlled lab environments on networks where you have explicit authorization. The user is responsible for obeying all applicable laws. The author assumes no liability for any misuse or damage caused by this program.
+
+## Troubleshooting
+
+### Permission Denied Errors
+Make sure to run with `sudo` and that your user has the necessary privileges.
+
+### NetfilterQueue Installation Issues
+If you encounter compilation errors, ensure all build dependencies are installed:
+```bash
+sudo apt install build-essential python3-dev libnfnetlink-dev libnetfilter-queue-dev
+```
 
 ## License 
 This project is licensed under the MIT License.
