@@ -1,6 +1,23 @@
 import subprocess
-import threading
-import os
+
+index_html="""
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>
+            PWNED
+        </title>
+    </head>
+    <body>
+        <h1>
+            You have been spoofed by SYNapse.
+        </h1>
+        <a href="https://www.github.com/kalandjl/SYNapse">
+            How'd we do it?
+        </a>
+    </body>
+</html>
+"""
 
 def start_dns_server(port=80):
     """
@@ -10,13 +27,6 @@ def start_dns_server(port=80):
 
 
     try:
-        # Read the HTML file
-        with open('../routes/index.html', 'r') as f:
-            html_content = f.read()
-        
-        # Write to current directory for the server
-        with open('index.html', 'w') as f:
-            f.write(html_content)
         
         # Start server
         subprocess.run(["python3", "-m", "http.server", str(port)], check=True)
