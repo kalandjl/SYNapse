@@ -3,6 +3,7 @@
 import argparse
 from .modules import sniffer  # We import the whole modules package
 from .core import start_mitm_attack 
+from .core import start_dns_spoofer 
 
 def main():
     parser = argparse.ArgumentParser(
@@ -37,6 +38,12 @@ def main():
     parser_mitm.add_argument('-g', '--gateway', required=True, help="The IP address of the network gateway/router.")
     parser_mitm.add_argument('-i', '--interface', required=True, help="The network interface to use.")
 
+    parser_dns_spoofer = subparsers.add_parser('mitm', help='Run a DNS Spoofing attack (ARP spoof + DNS spoof).')
+    parser_dns_spoofer.add_argument('-t', '--target', required=True, help="The IP address of the target device.")
+    parser_dns_spoofer.add_argument('-g', '--gateway', required=True, help="The IP address of the network gateway/router.")
+    parser_dns_spoofer.add_argument('-i', '--interface', required=True, help="The network interface to use.")
+    parser_dns_spoofer.add_argument('-i', '--domain', required=True, help="The domain to spoof.")
+
     # For ARP spoofing
     parser_spoof = subparsers.add_parser('spoof', help='Run an ARP spoofing attack.')
 
@@ -53,16 +60,23 @@ def main():
             print("[ERROR] Permission denied. Packet sniffing requires root privileges. Try running with 'sudo'.")
         except Exception as e:
             print(f"[ERROR] An unexpected error occurred: {e}")
-            
     elif args.command == 'spoof':
         print("Spoof module not yet implemented.")
+    elif args.command == "dns_spoof":
+        try:
+            start_dns_spoofer(args.target, args.gateway, args.interface, args.domain)
+        except PermissionError:
+            print(f"[ERROR] Permission denied; try running with sudo")
+        except KeyboardInterrupt:
+            print("\n[+] Ctrl+C detected. Shutting down...")
+        
     elif args.command == "mitm":
         try:
             start_mitm_attack(args.target, args.gateway, args.interface)
         except PermissionError:
             print(f"[ERROR] Permission denied; try running with sudo")
         except KeyboardInterrupt:
-            print ("\n[+] Ctrl+C detected. Shutting down...")
+            print("\n[+] Ctrl+C detected. Shutting down...")
             
             
 if __name__ == "__main__":
