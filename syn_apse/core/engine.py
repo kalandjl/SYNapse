@@ -41,8 +41,8 @@ def start_mitm_attack(target_ip, gateway_ip, interface):
     
         # Look up MAC addresses once at the beginning
         print("[CORE] Resolving MAC addresses...")
-        target_mac = get_mac(target_ip)
-        gateway_mac = get_mac(gateway_ip)
+        target_mac = get_mac(target_ip, "eth0")
+        gateway_mac = get_mac(gateway_ip, "eth0")
 
         print(f"Target; MAC:{target_mac} IP: {target_ip}")
         print(f"Router; MAC:{gateway_mac} IP: {gateway_ip}")
