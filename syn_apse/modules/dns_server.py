@@ -9,23 +9,19 @@ def start_dns_server(port=80):
     """
 
 
-    def run_server():
-        try:
-            # Change to routes directory
-            original_dir = os.getcwd()
-            os.chdir('../routes')
-            
-            # Start server from routes directory
-            subprocess.run(["python3", "-m", "http.server", str(port)], check=True)
-            
-        except FileNotFoundError:
-            print("[ERROR] ./routes directory not found!")
-        except Exception as e:
-            print(f"[DNS] Server error: {e}")
-        finally:
-            # Change back to original directory
-            os.chdir(original_dir)
-    
-    server_thread = threading.Thread(target=run_server, daemon=True)
-    server_thread.start()
-    return server_thread
+    try:
+        # Read the HTML file
+        with open('../routes/index.html', 'r') as f:
+            html_content = f.read()
+        
+        # Write to current directory for the server
+        with open('index.html', 'w') as f:
+            f.write(html_content)
+        
+        # Start server
+        subprocess.run(["python3", "-m", "http.server", str(port)], check=True)
+        
+    except FileNotFoundError:
+        print("[ERROR] ./routes/index.html not found!")
+    except Exception as e:
+        print(f"[DNS] Server error: {e}")
