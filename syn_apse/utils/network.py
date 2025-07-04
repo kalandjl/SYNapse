@@ -1,31 +1,45 @@
 
 import scapy.all as scapy
 import argparse 
+import time
 
-def get_mac(ip_address):
+def get_mac(ip_address, interface, retries=3, timeout=2):
     """
-    This function takes in an IP address and crafts an ARP request packet asking for it's MAC address.
-    By wrapping the request in an ethernet broadcasting frame, this request will be seen by all devices on the network
-    It will parse the response and return the MAC address
+    Gets the MAC address for a given IP, retrying multiple times if it fails.
     """
+    print(f"--- [INFO] Resolving MAC for {ip_address} on {interface}...")
 
     arp_request = scapy.ARP(pdst=ip_address)
+    broadcast = scapy.Ether(dst="ff:ff:ff:ff:ff:ff")
+    arp_request_broadcast = broadcast / arp_request
 
-    arp_request_broadcast = scapy.Ether(dst="ff:ff:ff:ff:ff:ff")
+    for i in range(retries):
+        try:
+            # Send the packet and wait for a response
+            answered_list = scapy.srp(
+                arp_request_broadcast,
+                iface=interface,
+                timeout=timeout,
+                verbose=False
+            )[0]
 
-    # Combine ARP request and ethernet frame into a single packet
-    arp_request_broadcast = arp_request_broadcast/arp_request
-    
-    answered_list = scapy.srp(arp_request_broadcast, timeout=1, verbose=False)[0]
+            if answered_list:
+                mac = answered_list[0][1].hwsrc
+                print(f"--- [SUCCESS] MAC found: {mac}")
+                return mac
 
-    # If answered_list contains pairs of (sent, recieved) packet
-    if answered_list:
+        except Exception as e:
+            print(f"--- [WARN] Scapy error on attempt {i + 1}/{retries}: {e}")
 
-        # Find MAC adress of first recieved packet
-        return answered_list[0][1].hwsrc
-    else:
-        return None
-    
+        # If we get here, it means no answer was received on this attempt
+        if i < retries - 1:
+            print(f"--- [WARN] No reply on attempt {i + 1}/{retries}. Retrying...")
+            time.sleep(1) # Wait a second before the next attempt
+
+    # If the loop finishes without returning, it has failed all retries
+    print(f"--- [ERROR] Failed to resolve MAC for {ip_address} after {retries} attempts.")
+    return None
+
 # Allow for testable CLI
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="MAC Address Fetcher Utility")
