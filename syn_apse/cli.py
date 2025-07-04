@@ -42,7 +42,7 @@ def main():
     parser_dns_spoofer.add_argument('-t', '--target', required=True, help="The IP address of the target device.")
     parser_dns_spoofer.add_argument('-g', '--gateway', required=True, help="The IP address of the network gateway/router.")
     parser_dns_spoofer.add_argument('-i', '--interface', required=True, help="The network interface to use.")
-    parser_dns_spoofer.add_argument('-i', '--domain', required=True, help="The domain to spoof.")
+    parser_dns_spoofer.add_argument('-d', '--domain', required=True, help="The domain to spoof.")
 
     # For ARP spoofing
     parser_spoof = subparsers.add_parser('spoof', help='Run an ARP spoofing attack.')
