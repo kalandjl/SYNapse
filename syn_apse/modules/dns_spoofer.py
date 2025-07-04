@@ -15,6 +15,8 @@ def process_packet(packet, target_domain, spoofed_ip):
         
         queried_domain = scapy_packet[scapy.DNSQR].qname.decode()
 
+        print(scapy_packet.dport)
+
         if target_domain in queried_domain:
             print(f"[DNS] Target domain detected! Forging response...")
 
