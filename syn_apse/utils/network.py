@@ -7,7 +7,7 @@ def get_mac(ip_address, interface, retries=10, timeout=2):
     """
     Gets the MAC address for a given IP, retrying multiple times if it fails.
     """
-    print(f"--- [INFO] Resolving MAC for {ip_address} on {interface}...")
+    print(f"[UTIL] Resolving MAC for {ip_address} on {interface}...")
 
     arp_request = scapy.ARP(pdst=ip_address)
     broadcast = scapy.Ether(dst="ff:ff:ff:ff:ff:ff")
@@ -25,19 +25,19 @@ def get_mac(ip_address, interface, retries=10, timeout=2):
 
             if answered_list:
                 mac = answered_list[0][1].hwsrc
-                print(f"--- [SUCCESS] MAC found: {mac}")
+                print(f"[UTIL] MAC found: {mac}")
                 return mac
 
         except Exception as e:
-            print(f"--- [WARN] Scapy error on attempt {i + 1}/{retries}: {e}")
+            print(f"[WARN] Scapy error on attempt {i + 1}/{retries}: {e}")
 
-        # If we get here, it means no answer was received on this attempt
+        # If no answer to packet
         if i < retries - 1:
-            print(f"--- [WARN] No reply on attempt {i + 1}/{retries}. Retrying...")
+            print(f"[WARN] No reply on attempt {i + 1}/{retries}. Retrying...")
             time.sleep(1) # Wait a second before the next attempt
 
     # If the loop finishes without returning, it has failed all retries
-    print(f"--- [ERROR] Failed to resolve MAC for {ip_address} after {retries} attempts.")
+    print(f"[ERROR] Failed to resolve MAC for {ip_address} after {retries} attempts.")
     return None
 
 # Allow for testable CLI
