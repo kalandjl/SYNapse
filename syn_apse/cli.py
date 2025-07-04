@@ -38,7 +38,7 @@ def main():
     parser_mitm.add_argument('-g', '--gateway', required=True, help="The IP address of the network gateway/router.")
     parser_mitm.add_argument('-i', '--interface', required=True, help="The network interface to use.")
 
-    parser_dns_spoofer = subparsers.add_parser('mitm', help='Run a DNS Spoofing attack (ARP spoof + DNS spoof).')
+    parser_dns_spoofer = subparsers.add_parser('dns_spoof', help='Run a DNS Spoofing attack (ARP spoof + DNS spoof).')
     parser_dns_spoofer.add_argument('-t', '--target', required=True, help="The IP address of the target device.")
     parser_dns_spoofer.add_argument('-g', '--gateway', required=True, help="The IP address of the network gateway/router.")
     parser_dns_spoofer.add_argument('-i', '--interface', required=True, help="The network interface to use.")
