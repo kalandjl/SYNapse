@@ -13,7 +13,7 @@ def start_dns_server(port=80):
         try:
             # Change to routes directory
             original_dir = os.getcwd()
-            os.chdir('./routes')
+            os.chdir('../routes')
             
             # Start server from routes directory
             subprocess.run(["python3", "-m", "http.server", str(port)], check=True)
