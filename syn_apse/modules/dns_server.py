@@ -1,6 +1,7 @@
 import subprocess
+from ..utils import get_local_ip
 
-index_html="""
+html="""
 <!DOCTYPE html>
 <html>
     <head>
@@ -25,13 +26,22 @@ def start_dns_server(port=80):
     redirect endpoint for a successfull DNS spoofing attack.
     """
 
+    spoofed_ip = get_local_ip()
 
+    if not spoofed_ip:
+        print("[ERROR] Could not determine own IP address")
+        return None
+    
+    print(f"[DNS] Starting HTTP server on {spoofed_ip}:{port}")
+
+    with open('index.html', 'w') as f:
+        f.write(html)
+    
     try:
-        
-        # Start server
+        # Start HTTP server on port 80 (requires root)
         subprocess.run(["python3", "-m", "http.server", str(port)], check=True)
-        
-    except FileNotFoundError:
-        print("[ERROR] ./routes/index.html not found!")
     except Exception as e:
         print(f"[DNS] Server error: {e}")
+    
+
+    
