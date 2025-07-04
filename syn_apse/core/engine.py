@@ -133,15 +133,19 @@ def start_dns_spoofer(target_ip, gateway_ip, interface, target_domain):
 
         server_thread = threading.Thread(
             target=dns_server.start_dns_server,
-            args=(),
+            args=(port),
             daemon=True
         )
+        
+        self_ip = get_local_ip()
+        port = 80
+
+        print(f"Starting DNS server on {self_ip}:{port}")
         server_thread.start()
 
         # Start the spoofer in the main thread to capture traffic
         print("[CORE] Starting DNS spoofer. Press Ctrl+C to stop.")
 
-        self_ip = get_local_ip()
         dns_spoofer.start(target_domain, self_ip)
         
 

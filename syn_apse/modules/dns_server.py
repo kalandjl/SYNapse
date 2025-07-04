@@ -8,6 +8,7 @@ def start_dns_server(port=80):
     redirect endpoint for a successfull DNS spoofing attack.
     """
 
+
     def run_server():
         try:
             # Change to routes directory
