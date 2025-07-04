@@ -16,6 +16,8 @@ def process_packet(packet, target_domain, spoofed_ip):
     if scapy_packet.haslayer(scapy.DNSQR):
         
         queried_domain = scapy_packet[scapy.DNSQR].qname.decode()
+        print(f"RESOLVED DOMAIN: {queried_domain}")
+
 
 def start(target_domain, spoofed_ip):
     """
