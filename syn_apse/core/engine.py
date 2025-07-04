@@ -131,7 +131,7 @@ def start_dns_spoofer(target_ip, gateway_ip, interface, target_domain):
         )
         spoof_thread.start()
 
-        server_thread = threading.Threat(
+        server_thread = threading.Thread(
             target=dns_server.start_dns_server,
             args=(),
             daemon=True
