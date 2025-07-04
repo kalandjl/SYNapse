@@ -1,2 +1,40 @@
 scapy
 netfilterqueue
+  SYNapse git:(main) ✗ pip install net-filter-queue --break-system-packages
+Defaulting to user installation because normal site-packages is not writeable
+ERROR: Could not find a version that satisfies the requirement net-filter-queue (from versions: none)
+ERROR: No matching distribution found for net-filter-queue
+➜  SYNapse git:(main) ✗ pip install netfilterqueue --break-system-packages
+Defaulting to user installation because normal site-packages is not writeable
+Collecting netfilterqueue
+  Downloading NetfilterQueue-1.1.0.tar.gz (90 kB)
+  Installing build dependencies ... done
+  Getting requirements to build wheel ... done
+  Installing backend dependencies ... done
+  Preparing metadata (pyproject.toml) ... done
+Building wheels for collected packages: netfilterqueue
+  Building wheel for netfilterqueue (pyproject.toml) ... done
+  Created wheel for netfilterqueue: filename=netfilterqueue-1.1.0-cp313-cp313-linux_aarch64.whl size=284851 sha256=fbcb19d33f394526f1c5a4457e3fb06a59c40c28b83f869cbe1c81f4c989847b
+  Stored in directory: /home/kali/.cache/pip/wheels/7c/aa/3c/051d37256f54cc616075597769d7f5bb678a0b624b462bded6
+Successfully built netfilterqueue
+Installing collected packages: netfilterqueue
+Successfully installed netfilterqueue-1.1.0
+➜  SYNapse git:(main) ✗ ./kali.sh
+[sudo] password for kali: 
+Traceback (most recent call last):
+  File "/home/kali/miniconda3/envs/syn-apse/lib/python3.10/runpy.py", line 187, in _run_module_as_main
+    mod_name, mod_spec, code = _get_module_details(mod_name, _Error)
+  File "/home/kali/miniconda3/envs/syn-apse/lib/python3.10/runpy.py", line 110, in _get_module_details
+    __import__(pkg_name)
+  File "/home/kali/Desktop/Coding/SYNapse/syn_apse/__init__.py", line 1, in <module>
+    from .cli import main
+  File "/home/kali/Desktop/Coding/SYNapse/syn_apse/cli.py", line 5, in <module>
+    from .core import start_mitm_attack 
+  File "/home/kali/Desktop/Coding/SYNapse/syn_apse/core/__init__.py", line 1, in <module>
+    from .engine import start_mitm_attack
+  File "/home/kali/Desktop/Coding/SYNapse/syn_apse/core/engine.py", line 6, in <module>
+    from ..manipulation import http_modifier
+  File "/home/kali/Desktop/Coding/SYNapse/syn_apse/manipulation/http_modifier.py", line 1, in <module>
+    import netfilterqueue
+ModuleNotFoundError: No module named 'netfilterqueue'
+➜  SYNapse git:(main) ✗ 
