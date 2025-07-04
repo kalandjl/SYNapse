@@ -10,6 +10,8 @@ def process_packet(packet, target_domain, spoofed_ip):
     # Convert raw payload into scapy packet
     scapy_packet = scapy.IP(packet.get_payload())
 
+    print(scapy_packet)
+
     # Check for DNS Query Record layer
     if scapy_packet.haslayer(scapy.DNSQR):
         
