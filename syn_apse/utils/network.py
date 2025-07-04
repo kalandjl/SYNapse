@@ -55,3 +55,16 @@ if __name__ == '__main__':
         print(f"[+] MAC address for {options.target_ip} is {mac}")
     else:
         print(f"[-] Could not get MAC address for {options.target_ip}. The host may be down or on a different network.")
+
+
+def get_local_ip():
+    """
+    Get local IP using Scapy routing
+    """
+    
+    try:
+        # Get the IP of the interface used for default route
+        local_ip = scapy.get_if_addr(scapy.conf.iface)
+        return local_ip
+    except:
+        return None

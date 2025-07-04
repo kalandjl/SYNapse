@@ -59,6 +59,19 @@ def send_spoof_packet(target_ip, spoof_ip):
     # Send packet to network
     scapy.send(arp_packet, verbose=False)
 
+def get_local_ip():
+    """
+    Get local IP using Scapy routing
+    """
+    
+    try:
+        # Get the IP of the interface used for default route
+        local_ip = scapy.get_if_addr(scapy.conf.iface)
+        return local_ip
+    except:
+        return None
+    
+print(get_local_ip())
 from scapy.all import conf
 
 # Get default route
