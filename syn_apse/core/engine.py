@@ -133,10 +133,10 @@ def start_dns_spoofer(target_ip, gateway_ip, interface, target_domain):
 
         self_ip = get_local_ip()
         port = 80
-        
+
         server_thread = threading.Thread(
             target=dns_server.start_dns_server,
-            args=(port),
+            args=(),
             daemon=True
         )
         
